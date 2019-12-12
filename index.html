@@ -24,11 +24,44 @@
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/slicknav.css">
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 	<script>
-        // $(document).ready(function(){
-        //     document.getElementById("error_message").style.visibility="hidden";    
-        // });
-        
+        $(document).ready(function(){
+            //To check whethe the user is logged in and set settings accordingly
+            if(checkLogin()){
+                $('a.login_handle').data('action','logout');
+                $('.handle_text').html('Logout');
+                $('a.login_handle').attr('href','#!');
+            }
+            
+            //document.getElementById("error_message").style.visibility="hidden";    
+        });
+
+        //To check whether the user is logged in or not
+        function checkLogin(){
+            if(localStorage.getItem('user_login')=='yes')
+                return true;
+            else
+                return false;
+        }
+
+        //To handle login and logout events [html class: login_handle]
+        function loginHandle(e){
+            action = $(e).data('action');
+            console.log(action);
+            if(action == 'logout'){
+                localStorage.setItem('token','');
+                localStorage.setItem('user_login','no');
+                localStorage.setItem('user_id','');
+                $(e).data('action','login'); 
+                $('.handle_text').html('Log in');
+                //To avoid opening login popup again
+                setTimeout(function(){
+                    $(e).attr('href','#test-form'); 
+                },1000);
+                
+            }
+        }
         function login_user()
         {
             var identifier = $("#identifier").val();
@@ -51,25 +84,39 @@
             //               data : {identifier: identifier, password : password}
             //             })
                          
-            $.post( "https://evidyadaan-backend.herokuapp.com/auth/local", {identifier: identifier, password : password},function( data ) {
-                console.log(data);
-                           
-                            if(data.jwt == "")
-                            //if(statusCode == 400)
-                            {
-                                alert ("\nInvalid Credentials: Please try again...")
-                                //document.getElementById("error_message").style.visibility="visible";    
-                                console.log("Error");
-                                // $(location).attr('href','#test-form');
-                            }
-                            else
-                            {
-                                window.location.href="main.html";  
-                                localStorage.setItem('token',data.jwt);
-                                
-                            }
-                            
-                    });    
+            if(localStorage.getItem('user_login')!== 'yes'){
+                $.post( "https://evidyadaan-backend.herokuapp.com/auth/local", {
+                identifier: identifier, 
+                password : password
+                },function( data ) {
+                      
+                    if(data.jwt)
+                    {
+                        //window.location.href="main.html";
+                        console.log(data.user.id);    
+
+                        //Settting session for logged in user 
+                        localStorage.setItem('token',data.jwt);
+                        localStorage.setItem('user_login','yes');
+                        localStorage.setItem('user_id',data.user.id);
+                        $('a.login_handle').attr('href',''); 
+                        $('a.login_handle').data('action','logout');
+                        $('.handle_text').html('Logout');  
+
+                        //Closing the login popup upon successful login
+                        $.magnificPopup.close();
+                    }
+                }).fail(function() {
+                alert ("\nInvalid Credentials: Please try again...")
+                //document.getElementById("error_message").style.visibility="visible";    
+                console.log("Error");
+                // $(location).attr('href','#test-form');  
+            });    
+            }
+            else{
+                alert('You are already logged in.');
+            }
+            
 
         }
 
@@ -77,27 +124,29 @@
 		{
                 var username = $("#username").val();
                 var email = $("#email").val();
-                var password = $("#password").val();
+                var password = $("#rpassword").val();
                 var cpwd = $("#cpwd").val();
                  if(password === cpwd)
                  {
-                    $.post( "https://evidyadaan-backend.herokuapp.com/auth/local/register", {username: username,email :     email,password : password},function( data ) {
+                    $.post( "https://evidyadaan-backend.herokuapp.com/auth/local/register", {
+                        username: username,
+                        email : email,
+                        password : password
+                        },function( data ) {
                             // $( ".result" ).html( data );
-                            if(data.jwt == "")
+                            if(data.jwt)
                             {
-                                alert ("\nRegistration Unsuccessful: Please try again...")
-                                console.log("Error");
-                                // $(location).attr('href','#test-form');
-                                
-                            }
-                            else
-                            {
-                                window.location.href="index.html";  
+                                //window.location.href="index.html";  
+                                console.log(data);
+                                console.log(data.jwt);
                                 localStorage.setItem('token',data.jwt);
+                            }   
+                    }).fail(function() {
+                        alert ("\nRegistration Unsuccessful: Please try again...");
+                        console.log("Error");
+                        // $(location).attr('href','#test-form');
                                 
-                            }
-                            
-                    });    
+                    }); 
                  }
                  else
                  {  
@@ -155,9 +204,9 @@
                         </div>
                         <div class="col-xl-3 col-lg-3 d-none d-lg-block">
                             <div class="log_chat_area d-flex align-items-center">
-                                <a href="#test-form" class="login popup-with-form">
+                                <a href="#test-form" class="login popup-with-form login_handle" onclick="loginHandle(this)" data-action="login">
                                     <i class="flaticon-user"></i>
-                                    <span>log in</span>
+                                    <span class="handle_text">log in</span>
                                 </a>
                                 <div class="live_chat_btn">
                                     <a class="boxed_btn_orange" href="#">
@@ -2109,10 +2158,10 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
                     <div class="row">
                         <h4 id="error_message"></h4>
                         <div class="col-xl-12 col-md-12">
-                            <input type="email" id="identifier" name="identifier" placeholder="Enter email">
+                            <input type="email" id="identifier" name="identifier" placeholder="Enter email" required>
                         </div>
                         <div class="col-xl-12 col-md-12">
-                            <input id="password" type="password" name="password" placeholder="Password">
+                            <input id="password" type="password" name="password" placeholder="Password" required>
                         </div>
                         <div class="col-xl-12">
                             <button type="button" onclick="login_user()" class="boxed_btn_orange">Sign in</button>
@@ -2145,7 +2194,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
                             <input type="email" id="email" name="email" placeholder="Enter email">
                         </div>
                         <div class="col-xl-12 col-md-12">
-                            <input type="password" id="password" name="password" placeholder="Password">
+                            <input type="password" id="rpassword" name="password" placeholder="Password">
                         </div>
                         <div class="col-xl-12 col-md-12">
                             <input type="Password" id="cpwd" name="cpwd" placeholder="Confirm password">
@@ -2162,7 +2211,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 
 
     <!-- JS here -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>
     <script src="js/popper.min.js"></script>
