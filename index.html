@@ -120,6 +120,37 @@
 
         }
 
+        function ValidateEmail(inputText)
+		{
+			var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+			if(inputText.value.match(mailformat))
+			{
+				document.form2.nform2.email.focus();
+				return true;
+			}
+			else
+			{
+				alert("You have entered an invalid email address!");
+				document.form1.text1.focus();
+				return false;
+			}
+		}
+
+		function CheckPassword(inputtxt) 
+		{ 
+			var passw=  /^[A-Za-z]\w{7,14}$/;
+			if(inputtxt.value.match(passw)) 
+			{ 
+				alert('Correct, try another...')
+				return true;
+			}
+			else
+			{ 
+				alert('Wrong...!')
+				return false;
+			}
+		}
+
 		function register_user()
 		{
                 var username = $("#username").val();
@@ -136,7 +167,8 @@
                             // $( ".result" ).html( data );
                             if(data.jwt)
                             {
-                                //window.location.href="index.html";  
+                            	alert ("\nRegistration Successful");
+                                window.location.href="index.html";  
                                 console.log(data);
                                 console.log(data.jwt);
                                 localStorage.setItem('token',data.jwt);
@@ -2176,7 +2208,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <!-- form itself end -->
 
     <!-- form itself end-->
-    <form id="test-form2" class="white-popup-block mfp-hide">
+    <form id="test-form2" class="white-popup-block mfp-hide" name="form2">
         <div class="popup_box ">
             <div class="popup_inner">
                 <div class="logo text-center">
@@ -2185,22 +2217,22 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
                     </a>
                 </div>
                 <h3>Registration</h3>
-                <form>
+                <form name="nform2" >
                     <div class="row">
 			 <div class="col-xl-12 col-md-12">
-                            <input type="text" id="username" name="username" placeholder="Enter username">
+                            <input type="text" id="username" name="username" placeholder="Enter username" required>
                         </div>
                         <div class="col-xl-12 col-md-12">
-                            <input type="email" id="email" name="email" placeholder="Enter email">
+                            <input type="email" id="email" name="email" placeholder="Enter email" required >
                         </div>
                         <div class="col-xl-12 col-md-12">
-                            <input type="password" id="rpassword" name="password" placeholder="Password">
+                            <input type="password" id="rpassword" name="password" placeholder="Password" minlength="6" required>
                         </div>
                         <div class="col-xl-12 col-md-12">
-                            <input type="Password" id="cpwd" name="cpwd" placeholder="Confirm password">
+                            <input type="password" id="cpwd" name="cpwd" placeholder="Confirm password" required>
                         </div>
                         <div class="col-xl-12">
-                            <button type="button" onclick="register_user()" class="boxed_btn_orange">Sign Up</button>
+                            <button  class="boxed_btn_orange" onclick="register_user()" type="button" >Sign Up</button>
                         </div>
                     </div>
                 </form>
